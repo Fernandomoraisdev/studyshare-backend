@@ -18,3 +18,11 @@ API Documentation: http://localhost:3001/api-docs
 [32m[nodemon] starting `node src/index.js`[39m
 Server is running at http://0.0.0.0:3001
 API Documentation: http://localhost:3001/api-docs
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+Server is running at http://0.0.0.0:3001
+API Documentation: http://localhost:3001/api-docs
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+Server is running at http://0.0.0.0:3001
+API Documentation: http://localhost:3001/api-docs

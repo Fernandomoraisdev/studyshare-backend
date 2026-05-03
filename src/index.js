@@ -22,8 +22,14 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .filter(Boolean);
 
   app.use(cors({
-    origin: "*"
+    origin: [
+      'http://localhost:5173',
+      'https://studyshare-front.netlify.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
   }));
+app.options('*', cors());
 app.use(express.json());
 
 // Garantir estrutura de pastas de upload
