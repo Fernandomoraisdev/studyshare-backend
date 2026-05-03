@@ -21,14 +21,9 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Origem nao permitida pelo CORS.'));
-  },
-}));
+  app.use(cors({
+    origin: "*"
+  }));
 app.use(express.json());
 
 // Garantir estrutura de pastas de upload
