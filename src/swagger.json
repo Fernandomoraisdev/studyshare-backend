@@ -1,0 +1,89 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "StudyShare API",
+    "version": "1.0.0",
+    "description": "API para o aplicativo de compartilhamento de resumos acadêmicos"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Servidor Local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Registrar novo estudante",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "area": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Estudante criado" }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": ["Categorias"],
+        "summary": "Listar todas as áreas de estudo",
+        "responses": {
+          "200": { "description": "Lista de categorias" }
+        }
+      }
+    },
+    "/resumes/upload": {
+      "post": {
+        "tags": ["Resumos"],
+        "summary": "Fazer upload de um novo resumo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "folderId": { "type": "integer" },
+                  "resume": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Resumo enviado" }
+        }
+      }
+    }
+  }
+}
