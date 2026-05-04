@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-const { exec } = require("child_process");
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
