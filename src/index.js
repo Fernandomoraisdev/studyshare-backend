@@ -1,4 +1,7 @@
 require('dotenv').config();
+
+const { exec } = require("child_process");
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -53,6 +56,28 @@ app.use('/api/users', userRoutes);
 app.get('/', (req, res) => {
   res.send('StudyShare API is running');
 });
+
+async function runSeed() {
+  console.log("Running migrations + seed...");
+
+  exec("npx prisma db push", (err, stdout, stderr) => {
+    if (err) {
+      console.error("Error running db push:", err);
+      return;
+    }
+    console.log(stdout);
+
+    exec("npx prisma db seed", (err2, stdout2, stderr2) => {
+      if (err2) {
+        console.error("Error running seed:", err2);
+        return;
+      }
+      console.log(stdout2);
+    });
+  });
+}
+
+runSeed();
 
 app.listen(PORT, HOST, () => {
   console.log(`Server is running at http://${HOST}:${PORT}`);

@@ -9,44 +9,7 @@ async function main() {
   // Create example users
   const hashedPassword = await bcrypt.hash("12345678", 12);
 
-  const user1 = await prisma.user.upsert({
-    where: { email: "aluno1@estudoshare.com" },
-    update: {},
-    create: {
-      name: "Alice Silva",
-      email: "aluno1@estudoshare.com",
-      password: hashedPassword,
-      area: "Psicologia",
-      bio: "Estudante de psicologia apaixonada por neurociência e psicologia social.",
-    },
-  });
-  console.log(`Created user: ${user1.name}`);
 
-  const user2 = await prisma.user.upsert({
-    where: { email: "aluno2@estudoshare.com" },
-    update: {},
-    create: {
-      name: "Bruno Costa",
-      email: "aluno2@estudoshare.com",
-      password: hashedPassword,
-      area: "Medicina",
-      bio: "Futuro médico, com foco em anatomia e fisiologia humana.",
-    },
-  });
-  console.log(`Created user: ${user2.name}`);
-
-  const user3 = await prisma.user.upsert({
-    where: { email: "aluno3@estudoshare.com" },
-    update: {},
-    create: {
-      name: "Carla Dias",
-      email: "aluno3@estudoshare.com",
-      password: hashedPassword,
-      area: "Ensino Médio",
-      bio: "Estudante do ensino médio, buscando resumos de matemática e física.",
-    },
-  });
-  console.log(`Created user: ${user3.name}`);
 
   // Create categories
   const category1 = await prisma.category.upsert({
