@@ -60,19 +60,19 @@ app.get('/', (req, res) => {
 async function runSeed() {
   console.log("Running migrations + seed...");
 
-  exec("npx prisma db push", (err, stdout, stderr) => {
-    if (err) {
-      console.error("Error running db push:", err);
-      return;
-    }
-    console.log(stdout);
-
-    exec("npx prisma db seed", (err2, stdout2, stderr2) => {
-      if (err2) {
-        console.error("Error running seed:", err2);
+    exec("./node_modules/.bin/prisma db push", (err, stdout, stderr) => {
+      if (err) {
+        console.error("Error running db push:", err);
         return;
       }
-      console.log(stdout2);
+      console.log(stdout);
+
+      exec("./node_modules/.bin/prisma db seed", (err2, stdout2, stderr2) => {
+        if (err2) {
+          console.error("Error running seed:", err2);
+          return;
+        }
+        console.log(stdout2);
     });
   });
 }
