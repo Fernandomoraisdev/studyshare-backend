@@ -80,6 +80,6 @@ async function runSeed() {
 runSeed();
 
 app.listen(PORT, HOST, () => {
-  console.log(`Server is running at http://${HOST}:${PORT}`);
+  console.log("🚀 NOVA VERSÃO COM SEED ATIVO 🚀");
   console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
 });
