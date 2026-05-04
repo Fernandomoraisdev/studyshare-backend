@@ -9,8 +9,11 @@
     "db:setup": "npm run prisma:generate && npm run db:init && npm run seed",
     "seed": "node prisma/seed.js",
     "prisma:migrate": "npx prisma migrate dev",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "postinstall": "npx prisma generate",
+    "deploy": "npx prisma db push && npm run seed"
   },
+  
   "dependencies": {
     "@prisma/client": "^5.10.2",
     "bcryptjs": "^2.4.3",
