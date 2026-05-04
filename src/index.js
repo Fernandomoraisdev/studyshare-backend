@@ -57,27 +57,7 @@ app.get('/', (req, res) => {
   res.send('StudyShare API is running');
 });
 
-async function runSeed() {
-  console.log("Running migrations + seed...");
 
-    exec("./node_modules/.bin/prisma db push", (err, stdout, stderr) => {
-      if (err) {
-        console.error("Error running db push:", err);
-        return;
-      }
-      console.log(stdout);
-
-      exec("./node_modules/.bin/prisma db seed", (err2, stdout2, stderr2) => {
-        if (err2) {
-          console.error("Error running seed:", err2);
-          return;
-        }
-        console.log(stdout2);
-    });
-  });
-}
-
-runSeed();
 
 app.listen(PORT, HOST, () => {
   console.log("🚀 NOVA VERSÃO COM SEED ATIVO 🚀");
