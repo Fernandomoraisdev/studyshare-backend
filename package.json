@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "npx prisma db push && npx prisma db seed && node src/index.js",
     "dev": "nodemon src/index.js",
     "db:init": "node prisma/init-sqlite.js",
     "db:setup": "npm run prisma:generate && npm run db:init && npm run seed",
@@ -13,7 +13,7 @@
     "postinstall": "npx prisma generate",
     "deploy": "npx prisma db push && npm run seed"
   },
-  
+
   "dependencies": {
     "@prisma/client": "^5.10.2",
     "bcryptjs": "^2.4.3",
