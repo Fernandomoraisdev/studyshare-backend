@@ -17,33 +17,55 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
+const defaultOrigins = [
+  'http://127.0.0.1:5173',
+  'http://localhost:5173',
+  'https://sharedstudy.netlify.app',
+];
+
+const allowedOrigins = [
+  ...defaultOrigins,
+  ...(process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter(Boolean),
+];
 
-  app.use(cors({
-    origin: [
-      'http://localhost:5173',
-      'https://sharedstudy.netlify.app'
-    ],
-    credentials: true
-  }));
+const isAllowedRailwayPreview = (origin) => {
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname.endsWith('.up.railway.app');
+  } catch (err) {
+    return false;
+  }
+};
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (process.env.ALLOW_ALL_ORIGINS === 'true') return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (isAllowedRailwayPreview(origin)) return callback(null, true);
+
+    return callback(new Error(`Origem nao permitida pelo CORS: ${origin}`));
+  },
+  credentials: true,
+}));
+
 app.options('*', cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// Garantir estrutura de pastas de upload
 const uploadsRoot = path.join(__dirname, '../uploads');
 fs.mkdirSync(path.join(uploadsRoot, 'resumes'), { recursive: true });
 fs.mkdirSync(path.join(uploadsRoot, 'profiles'), { recursive: true });
 
-// Servir arquivos estáticos (uploads de resumos)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Documentação da API
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'studyshare-api' });
+});
 
-// Rotas da API
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/resumes', resumeRoutes);
@@ -54,20 +76,7 @@ app.get('/', (req, res) => {
   res.send('StudyShare API is running');
 });
 
-if (process.env.RUN_SEED === "true") {
-  const { execSync } = require("child_process");
-
-  console.log("🌱 Rodando seed manual...");
-
-  try {
-    execSync("npx prisma db push", { stdio: "inherit" });
-    execSync("node prisma/seed.js", { stdio: "inherit" });
-  } catch (e) {
-    console.error("Erro ao rodar seed:", e);
-  }
-}
-
 app.listen(PORT, HOST, () => {
-  console.log("🚀 NOVA VERSÃO COM SEED ATIVO 🚀");
-  console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+  console.log(`StudyShare API running at http://${HOST}:${PORT}`);
+  console.log(`Healthcheck: http://localhost:${PORT}/health`);
 });

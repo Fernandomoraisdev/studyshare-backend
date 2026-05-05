@@ -4,6 +4,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "railway:start": "npx prisma db push && node src/index.js",
     "dev": "nodemon src/index.js",
     "db:init": "node prisma/init-sqlite.js",
     "db:setup": "npm run prisma:generate && npm run db:init && npm run seed",
@@ -13,7 +14,9 @@
     "postinstall": "npx prisma generate",
     "deploy": "npx prisma db push && npm run seed"
   },
-
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "prisma": "^5.22.0",
     "@prisma/client": "^5.22.0",
