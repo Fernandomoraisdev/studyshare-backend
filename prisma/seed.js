@@ -10,7 +10,13 @@ async function main() {
   const hashedPassword = await bcrypt.hash("12345678", 12);
 
 
-
+  const user1 = await prisma.user.create({
+    data: {
+      name: "Admin",
+      email: "admin@studyshare.com",
+      password: "123456"
+    }
+  });
 
   // Create categories
   const category1 = await prisma.category.upsert({
