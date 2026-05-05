@@ -4,203 +4,143 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Start seeding for StudyShare App...");
+  console.log("🌱 Start seeding StudyShare...");
 
-  // Create example users
-  const hashedPassword = await bcrypt.hash("12345678", 12);
+  // 🔐 senha segura
+  const hashedPassword = await bcrypt.hash("12345678", 10);
 
-
-  const user1 = await prisma.user.create({
-    data: {
+  // 👤 USERS (idempotente)
+  const user1 = await prisma.user.upsert({
+    where: { email: "admin@studyshare.com" },
+    update: {},
+    create: {
       name: "Admin",
       email: "admin@studyshare.com",
-      password: "123456"
+      password: hashedPassword,
+      area: "Admin"
     }
   });
-  
-  const user2 = await prisma.user.create({
-    data: {
+
+  const user2 = await prisma.user.upsert({
+    where: { email: "bruno@studyshare.com" },
+    update: {},
+    create: {
       name: "Bruno Costa",
       email: "bruno@studyshare.com",
-      password: "123456"
+      password: hashedPassword,
+      area: "Psicologia"
     }
   });
-  
-  const user3 = await prisma.user.create({
-    data: {
+
+  const user3 = await prisma.user.upsert({
+    where: { email: "carla@studyshare.com" },
+    update: {},
+    create: {
       name: "Carla Dias",
       email: "carla@studyshare.com",
-      password: "123456"
+      password: hashedPassword,
+      area: "Medicina"
     }
   });
 
-  // Create categories
-  const category1 = await prisma.category.upsert({
-    where: { name: "Psicologia" },
-    update: {},
-    create: { name: "Psicologia", icon: "Brain" },
-  });
-  console.log(`Created category: ${category1.name}`);
+  console.log("✅ Users created");
 
-  const category2 = await prisma.category.upsert({
-    where: { name: "Medicina" },
-    update: {},
-    create: { name: "Medicina", icon: "HeartPulse" },
-  });
-  console.log(`Created category: ${category2.name}`);
+  // 📚 CATEGORIES
+  const categories = await Promise.all([
+    prisma.category.upsert({
+      where: { name: "Psicologia" },
+      update: {},
+      create: { name: "Psicologia", icon: "Brain" }
+    }),
+    prisma.category.upsert({
+      where: { name: "Medicina" },
+      update: {},
+      create: { name: "Medicina", icon: "HeartPulse" }
+    }),
+    prisma.category.upsert({
+      where: { name: "Ensino Médio" },
+      update: {},
+      create: { name: "Ensino Médio", icon: "GraduationCap" }
+    }),
+  ]);
 
-  const category3 = await prisma.category.upsert({
-    where: { name: "Ensino Médio" },
-    update: {},
-    create: { name: "Ensino Médio", icon: "GraduationCap" },
-  });
-  console.log(`Created category: ${category3.name}`);
+  console.log("✅ Categories created");
 
-  const category4 = await prisma.category.upsert({
-    where: { name: "Direito" },
-    update: {},
-    create: { name: "Direito", icon: "Scale" },
-  });
-  console.log(`Created category: ${category4.name}`);
+  // 📂 FOLDERS
+  const folders = await Promise.all([
+    prisma.folder.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { name: "Psicologia Social", categoryId: categories[0].id }
+    }),
+    prisma.folder.upsert({
+      where: { id: 2 },
+      update: {},
+      create: { name: "Neurociência", categoryId: categories[0].id }
+    }),
+    prisma.folder.upsert({
+      where: { id: 3 },
+      update: {},
+      create: { name: "Anatomia", categoryId: categories[1].id }
+    }),
+  ]);
 
-  const category5 = await prisma.category.upsert({
-    where: { name: "Engenharia" },
-    update: {},
-    create: { name: "Engenharia", icon: "Construction" },
-  });
-  console.log(`Created category: ${category5.name}`);
+  console.log("✅ Folders created");
 
-  // Create folders
-  const folder1 = await prisma.folder.upsert({
-    where: { id: 1 },
+  // 🏷️ TAGS
+  const tag1 = await prisma.tag.upsert({
+    where: { name: "psicologia" },
     update: {},
-    create: { name: "Psicologia Social", categoryId: category1.id },
+    create: { name: "psicologia" }
   });
-  console.log(`Created folder: ${folder1.name}`);
 
-  const folder2 = await prisma.folder.upsert({
-    where: { id: 2 },
+  const tag2 = await prisma.tag.upsert({
+    where: { name: "medicina" },
     update: {},
-    create: { name: "Neurociência Cognitiva", categoryId: category1.id },
+    create: { name: "medicina" }
   });
-  console.log(`Created folder: ${folder2.name}`);
 
-  const folder3 = await prisma.folder.upsert({
-    where: { id: 3 },
-    update: {},
-    create: { name: "Anatomia Humana", categoryId: category2.id },
-  });
-  console.log(`Created folder: ${folder3.name}`);
-
-  const folder4 = await prisma.folder.upsert({
-    where: { id: 4 },
-    update: {},
-    create: { name: "Física - Eletrodinâmica", categoryId: category3.id },
-  });
-  console.log(`Created folder: ${folder4.name}`);
-
-  const folder5 = await prisma.folder.upsert({
-    where: { id: 5 },
-    update: {},
-    create: { name: "Matemática - Cálculo I", categoryId: category3.id },
-  });
-  console.log(`Created folder: ${folder5.name}`);
-
-  // Create example resumes (fileUrl will be dummy for now)
-  const resume1 = await prisma.resume.upsert({
+  // 📝 RESUMES
+  await prisma.resume.upsert({
     where: { id: 1 },
     update: {},
     create: {
-      title: "Resumo de Psicologia Social: Conceitos Fundamentais",
-      description: "Principais teorias e conceitos da psicologia social, ideal para iniciantes.",
-      content:
-        "Este post é um exemplo de conteúdo em texto.\n\n• Conceitos: percepção social, influência, atitudes.\n• Experimentos clássicos e autores.\n• Aplicações no cotidiano.",
-      userId: user1.id,
-      folderId: folder1.id,
-      views: 150,
-      tags: {
-        connectOrCreate: [
-          { where: { name: "psicologia" }, create: { name: "psicologia" } },
-          { where: { name: "social" }, create: { name: "social" } },
-          { where: { name: "teorias" }, create: { name: "teorias" } },
-        ],
-      },
-    },
-  });
-  console.log(`Created resume: ${resume1.title}`);
-
-  const resume2 = await prisma.resume.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      title: "Introdução à Neurociência: Sinapses e Neurotransmissores",
-      description: "Material completo sobre o funcionamento das sinapses e os principais neurotransmissores.",
-      content:
-        "Sinapses químicas e elétricas:\n\n1) Potencial de ação → liberação de neurotransmissores.\n2) Receptores pós-sinápticos.\n3) Recaptação e degradação.\n\nNeurotransmissores: glutamato, GABA, dopamina, serotonina.",
-      userId: user1.id,
-      folderId: folder2.id,
-      views: 230,
-      tags: {
-        connectOrCreate: [
-          { where: { name: "neurociencia" }, create: { name: "neurociencia" } },
-          { where: { name: "sinapses" }, create: { name: "sinapses" } },
-          { where: { name: "biologia" }, create: { name: "biologia" } },
-        ],
-      },
-    },
-  });
-  console.log(`Created resume: ${resume2.title}`);
-
-  const resume3 = await prisma.resume.upsert({
-    where: { id: 3 },
-    update: {},
-    create: {
-      title: "Atlas de Anatomia Humana: Sistema Esquelético",
-      description: "Imagens detalhadas e descrições do sistema esquelético humano.",
-      content:
-        "Checklist rápido do esqueleto:\n\n• Axial: crânio, coluna, caixa torácica.\n• Apendicular: cinturas + membros.\n• Funções: suporte, proteção, hematopoiese, reserva mineral.",
+      title: "Resumo Psicologia Social",
+      description: "Conceitos fundamentais",
+      content: "Conteúdo exemplo de psicologia social...",
       userId: user2.id,
-      folderId: folder3.id,
-      views: 300,
+      folderId: folders[0].id,
+      views: 100,
       tags: {
-        connectOrCreate: [
-          { where: { name: "anatomia" }, create: { name: "anatomia" } },
-          { where: { name: "medicina" }, create: { name: "medicina" } },
-          { where: { name: "esqueleto" }, create: { name: "esqueleto" } },
-        ],
-      },
-    },
+        connect: [{ id: tag1.id }]
+      }
+    }
   });
-  console.log(`Created resume: ${resume3.title}`);
 
-  const resume4 = await prisma.resume.upsert({
-    where: { id: 4 },
+  await prisma.resume.upsert({
+    where: { id: 2 },
     update: {},
     create: {
-      title: "Formulário de Eletrodinâmica para Vestibular",
-      description: "Principais fórmulas e conceitos de eletrodinâmica para revisão rápida.",
-      content:
-        "Fórmulas essenciais:\n\n• U = R·i\n• P = U·i = R·i² = U²/R\n• E = P·Δt\n\nDicas: atenção às unidades (V, A, Ω, W, J) e conversões.",
+      title: "Resumo Anatomia Humana",
+      description: "Sistema esquelético",
+      content: "Conteúdo exemplo de anatomia...",
       userId: user3.id,
-      folderId: folder4.id,
-      views: 80,
+      folderId: folders[2].id,
+      views: 200,
       tags: {
-        connectOrCreate: [
-          { where: { name: "fisica" }, create: { name: "fisica" } },
-          { where: { name: "vestibular" }, create: { name: "vestibular" } },
-          { where: { name: "formulas" }, create: { name: "formulas" } },
-        ],
-      },
-    },
+        connect: [{ id: tag2.id }]
+      }
+    }
   });
-  console.log(`Created resume: ${resume4.title}`);
 
-  console.log("StudyShare App Seeding finished.");
+  console.log("✅ Resumes created");
+
+  console.log("🚀 Seed finalizado com sucesso!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Seed error:", e);
     process.exit(1);
   })
   .finally(async () => {
