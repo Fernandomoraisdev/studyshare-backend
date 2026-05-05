@@ -23,11 +23,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .filter(Boolean);
 
   app.use(cors({
-    origin: [
-      'http://localhost:5173',
-      'https://sharedstudy.netlify.app'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: true, // aceita qualquer origem (resolve rápido)
     credentials: true
   }));
 app.options('*', cors());
