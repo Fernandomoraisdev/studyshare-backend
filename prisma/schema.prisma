@@ -27,6 +27,14 @@ model User {
   updatedAt   DateTime  @updatedAt
 }
 
+model StudyArea {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  group     String?
+  icon      String?
+  createdAt DateTime @default(now())
+}
+
 model Category {
   id          Int       @id @default(autoincrement())
   name        String    @unique // Ex: Psicologia, Matemática, História

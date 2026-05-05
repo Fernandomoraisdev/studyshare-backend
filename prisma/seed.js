@@ -4,12 +4,76 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Start seeding StudyShare...");
+  console.log("ðŸŒ± Start seeding StudyShare...");
 
-  // 🔐 senha segura
+  // ðŸ” senha segura
   const hashedPassword = await bcrypt.hash("12345678", 10);
 
-  // 👤 USERS (idempotente)
+
+  const studyAreas = [
+    ["Tecnologia", "Tecnologia"],
+    ["Ciencia da Computacao", "Tecnologia"],
+    ["Engenharia de Software", "Tecnologia"],
+    ["Sistemas de Informacao", "Tecnologia"],
+    ["Analise e Desenvolvimento de Sistemas", "Tecnologia"],
+    ["Redes de Computadores", "Tecnologia"],
+    ["Seguranca da Informacao", "Tecnologia"],
+    ["Ciencia de Dados", "Tecnologia"],
+    ["Inteligencia Artificial", "Tecnologia"],
+    ["Design UX/UI", "Tecnologia"],
+    ["Medicina", "Saude"],
+    ["Enfermagem", "Saude"],
+    ["Odontologia", "Saude"],
+    ["Farmacia", "Saude"],
+    ["Fisioterapia", "Saude"],
+    ["Psicologia", "Saude"],
+    ["Biomedicina", "Saude"],
+    ["Nutricao", "Saude"],
+    ["Veterinaria", "Saude"],
+    ["Educacao Fisica", "Saude"],
+    ["Engenharia Civil", "Engenharia"],
+    ["Engenharia Mecanica", "Engenharia"],
+    ["Engenharia Eletrica", "Engenharia"],
+    ["Engenharia de Producao", "Engenharia"],
+    ["Engenharia Quimica", "Engenharia"],
+    ["Engenharia Ambiental", "Engenharia"],
+    ["Engenharia de Computacao", "Engenharia"],
+    ["Arquitetura e Urbanismo", "Engenharia"],
+    ["Direito", "Humanas"],
+    ["Administracao", "Negocios"],
+    ["Contabilidade", "Negocios"],
+    ["Economia", "Negocios"],
+    ["Marketing", "Negocios"],
+    ["Recursos Humanos", "Negocios"],
+    ["Pedagogia", "Educacao"],
+    ["Letras", "Educacao"],
+    ["Historia", "Humanas"],
+    ["Geografia", "Humanas"],
+    ["Sociologia", "Humanas"],
+    ["Filosofia", "Humanas"],
+    ["Jornalismo", "Comunicacao"],
+    ["Publicidade e Propaganda", "Comunicacao"],
+    ["Design Grafico", "Criativas"],
+    ["Artes Visuais", "Criativas"],
+    ["Musica", "Criativas"],
+    ["Matematica", "Exatas"],
+    ["Fisica", "Exatas"],
+    ["Quimica", "Exatas"],
+    ["Biologia", "Biologicas"],
+    ["Ensino Medio", "Educacao Basica"],
+    ["Vestibular e ENEM", "Educacao Basica"],
+  ];
+
+  for (const [name, group] of studyAreas) {
+    await prisma.studyArea.upsert({
+      where: { name },
+      update: { group },
+      create: { name, group, icon: "GraduationCap" },
+    });
+  }
+
+  console.log("Areas de estudo criadas");
+  // ðŸ‘¤ USERS (idempotente)
   const user1 = await prisma.user.upsert({
     where: { email: "admin@studyshare.com" },
     update: {},
@@ -43,9 +107,9 @@ async function main() {
     }
   });
 
-  console.log("✅ Users created");
+  console.log("âœ… Users created");
 
-  // 📚 CATEGORIES
+  // ðŸ“š CATEGORIES
   const categories = await Promise.all([
     prisma.category.upsert({
       where: { name: "Psicologia" },
@@ -58,15 +122,15 @@ async function main() {
       create: { name: "Medicina", icon: "HeartPulse" }
     }),
     prisma.category.upsert({
-      where: { name: "Ensino Médio" },
+      where: { name: "Ensino MÃ©dio" },
       update: {},
-      create: { name: "Ensino Médio", icon: "GraduationCap" }
+      create: { name: "Ensino MÃ©dio", icon: "GraduationCap" }
     }),
   ]);
 
-  console.log("✅ Categories created");
+  console.log("âœ… Categories created");
 
-  // 📂 FOLDERS
+  // ðŸ“‚ FOLDERS
   const folders = await Promise.all([
     prisma.folder.upsert({
       where: { id: 1 },
@@ -76,7 +140,7 @@ async function main() {
     prisma.folder.upsert({
       where: { id: 2 },
       update: {},
-      create: { name: "Neurociência", categoryId: categories[0].id }
+      create: { name: "NeurociÃªncia", categoryId: categories[0].id }
     }),
     prisma.folder.upsert({
       where: { id: 3 },
@@ -85,9 +149,9 @@ async function main() {
     }),
   ]);
 
-  console.log("✅ Folders created");
+  console.log("âœ… Folders created");
 
-  // 🏷️ TAGS
+  // ðŸ·ï¸ TAGS
   const tag1 = await prisma.tag.upsert({
     where: { name: "psicologia" },
     update: {},
@@ -100,14 +164,14 @@ async function main() {
     create: { name: "medicina" }
   });
 
-  // 📝 RESUMES
+  // ðŸ“ RESUMES
   await prisma.resume.upsert({
     where: { id: 1 },
     update: {},
     create: {
       title: "Resumo Psicologia Social",
       description: "Conceitos fundamentais",
-      content: "Conteúdo exemplo de psicologia social...",
+      content: "ConteÃºdo exemplo de psicologia social...",
       userId: user2.id,
       folderId: folders[0].id,
       views: 100,
@@ -122,8 +186,8 @@ async function main() {
     update: {},
     create: {
       title: "Resumo Anatomia Humana",
-      description: "Sistema esquelético",
-      content: "Conteúdo exemplo de anatomia...",
+      description: "Sistema esquelÃ©tico",
+      content: "ConteÃºdo exemplo de anatomia...",
       userId: user3.id,
       folderId: folders[2].id,
       views: 200,
@@ -133,14 +197,14 @@ async function main() {
     }
   });
 
-  console.log("✅ Resumes created");
+  console.log("âœ… Resumes created");
 
-  console.log("🚀 Seed finalizado com sucesso!");
+  console.log("ðŸš€ Seed finalizado com sucesso!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("âŒ Seed error:", e);
     process.exit(1);
   })
   .finally(async () => {

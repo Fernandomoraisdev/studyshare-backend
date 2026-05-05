@@ -5,6 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+const normalizeArea = (area) => String(area || '').trim().replace(/\s+/g, ' ').slice(0, 80);
 
 const publicUserSelect = {
   id: true,
@@ -28,7 +29,8 @@ const signToken = (user) => {
 };
 
 const register = async (req, res) => {
-  const { name, password, area } = req.body;
+  const { name, password } = req.body;
+  const area = normalizeArea(req.body.area);
   const email = normalizeEmail(req.body.email);
 
   if (!name?.trim() || !email || !area?.trim() || !password) {
@@ -55,9 +57,15 @@ const register = async (req, res) => {
         name: name.trim(),
         email,
         password: hashedPassword,
-        area: area.trim(),
+        area,
       },
       select: publicUserSelect,
+    });
+
+    await prisma.studyArea.upsert({
+      where: { name: area },
+      update: {},
+      create: { name: area, group: 'Criadas pelos usuarios', icon: 'GraduationCap' },
     });
 
     const token = signToken(user);
