@@ -55,7 +55,18 @@ app.get('/', (req, res) => {
   res.send('StudyShare API is running');
 });
 
+if (process.env.RUN_SEED === "true") {
+  const { execSync } = require("child_process");
 
+  console.log("🌱 Rodando seed manual...");
+
+  try {
+    execSync("npx prisma db push", { stdio: "inherit" });
+    execSync("node prisma/seed.js", { stdio: "inherit" });
+  } catch (e) {
+    console.error("Erro ao rodar seed:", e);
+  }
+}
 
 app.listen(PORT, HOST, () => {
   console.log("🚀 NOVA VERSÃO COM SEED ATIVO 🚀");
