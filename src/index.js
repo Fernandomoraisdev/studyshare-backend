@@ -13,6 +13,7 @@ const resumeRoutes = require('./routes/resume.routes');
 const tagRoutes = require('./routes/tag.routes');
 const userRoutes = require('./routes/user.routes');
 const studyAreaRoutes = require('./routes/studyArea.routes');
+const socialRoutes = require('./routes/social.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -73,6 +74,7 @@ app.use('/api/resumes', resumeRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/study-areas', studyAreaRoutes);
+app.use('/api/social', socialRoutes);
 
 app.get('/', (req, res) => {
   res.send('StudyShare API is running');

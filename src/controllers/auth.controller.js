@@ -13,6 +13,7 @@ const publicUserSelect = {
   email: true,
   area: true,
   photoUrl: true,
+  coverUrl: true,
   bio: true,
 };
 

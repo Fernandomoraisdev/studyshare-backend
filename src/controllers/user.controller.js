@@ -14,13 +14,14 @@ const toUserCard = (user, viewerFollowingIdsSet) => ({
   name: user.name,
   area: user.area,
   photoUrl: user.photoUrl,
+  coverUrl: user.coverUrl,
   bio: user.bio,
   isFollowing: viewerFollowingIdsSet ? viewerFollowingIdsSet.has(user.id) : false,
 });
 
 const getProfile = async (req, res) => {
   try {
-    const [user, followersCount, followingCount] = await Promise.all([
+    const [user, followersCount, followingCount, friendsCount] = await Promise.all([
       prisma.user.findUnique({
         where: { id: req.user.id },
         include: {
@@ -29,28 +30,29 @@ const getProfile = async (req, res) => {
             include: {
               folder: { include: { category: true } },
               tags: { select: { id: true, name: true } },
-              _count: { select: { likes: true, comments: true } },
+              _count: { select: { likes: true, comments: true, reposts: true, shares: true, savedBy: true, contributionRequests: true } },
             },
           },
         },
       }),
       prisma.userFollow.count({ where: { followingId: req.user.id } }),
       prisma.userFollow.count({ where: { followerId: req.user.id } }),
+      prisma.friendship.count({ where: { userId: req.user.id } }),
     ]);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-    res.json({ ...toPublicUser(user), followersCount, followingCount });
+    res.json({ ...toPublicUser(user), followersCount, followingCount, friendsCount });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar perfil.', error: err.message });
   }
 };
 
 const updateProfile = async (req, res) => {
-  const { name, bio, area, photoUrl } = req.body;
+  const { name, bio, area, photoUrl, coverUrl } = req.body;
   try {
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { name, bio, area, photoUrl }
+      data: { name, bio, area, photoUrl, coverUrl }
     });
     res.json({ message: 'Perfil atualizado!', user: toPublicUser(user) });
   } catch (err) {
@@ -86,16 +88,22 @@ const getUserSummary = async (req, res) => {
   }
 
   try {
-    const [user, followersCount, followingCount, followRecord] = await Promise.all([
+    const [user, followersCount, followingCount, friendsCount, followRecord, friendshipRecord] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true, area: true, photoUrl: true, bio: true, createdAt: true },
+        select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true, bio: true, createdAt: true },
       }),
       prisma.userFollow.count({ where: { followingId: userId } }),
       prisma.userFollow.count({ where: { followerId: userId } }),
+      prisma.friendship.count({ where: { userId } }),
       viewerUserId
         ? prisma.userFollow.findUnique({
             where: { followerId_followingId: { followerId: viewerUserId, followingId: userId } },
+          })
+        : null,
+      viewerUserId
+        ? prisma.friendship.findUnique({
+            where: { userId_friendId: { userId: viewerUserId, friendId: userId } },
           })
         : null,
     ]);
@@ -106,7 +114,9 @@ const getUserSummary = async (req, res) => {
       ...user,
       followersCount,
       followingCount,
+      friendsCount,
       isFollowing: Boolean(followRecord),
+      isFriend: Boolean(friendshipRecord),
     });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar resumo do perfil.', error: err.message });
@@ -121,7 +131,7 @@ const getPublicProfile = async (req, res) => {
   }
 
   try {
-    const [user, followersCount, followingCount, followRecord] = await Promise.all([
+    const [user, followersCount, followingCount, friendsCount, followRecord, friendshipRecord] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         include: {
@@ -131,16 +141,22 @@ const getPublicProfile = async (req, res) => {
             include: {
               folder: { include: { category: true } },
               tags: { select: { id: true, name: true } },
-              _count: { select: { likes: true, comments: true } },
+              _count: { select: { likes: true, comments: true, reposts: true, shares: true, savedBy: true, contributionRequests: true } },
             },
           },
         },
       }),
       prisma.userFollow.count({ where: { followingId: userId } }),
       prisma.userFollow.count({ where: { followerId: userId } }),
+      prisma.friendship.count({ where: { userId } }),
       viewerUserId
         ? prisma.userFollow.findUnique({
             where: { followerId_followingId: { followerId: viewerUserId, followingId: userId } },
+          })
+        : null,
+      viewerUserId
+        ? prisma.friendship.findUnique({
+            where: { userId_friendId: { userId: viewerUserId, friendId: userId } },
           })
         : null,
     ]);
@@ -150,7 +166,9 @@ const getPublicProfile = async (req, res) => {
       ...toPublicUser(user),
       followersCount,
       followingCount,
+      friendsCount,
       isFollowing: Boolean(followRecord),
+      isFriend: Boolean(friendshipRecord),
     });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar perfil público.', error: err.message });
@@ -174,7 +192,7 @@ const listFollowers = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 200,
       include: {
-        follower: { select: { id: true, name: true, area: true, photoUrl: true, bio: true } },
+        follower: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true, bio: true } },
       },
     });
 
@@ -212,7 +230,7 @@ const listFollowing = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 200,
       include: {
-        following: { select: { id: true, name: true, area: true, photoUrl: true, bio: true } },
+        following: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true, bio: true } },
       },
     });
 

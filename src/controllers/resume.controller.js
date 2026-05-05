@@ -50,19 +50,25 @@ const parseTags = (rawTags) => {
 };
 
 const buildResumeInclude = (viewerUserId) => ({
-  user: { select: { id: true, name: true, area: true, photoUrl: true } },
+  user: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true } },
   folder: { include: { category: true } },
   tags: { select: { id: true, name: true } },
-  _count: { select: { likes: true, comments: true } },
+  _count: { select: { likes: true, comments: true, reposts: true, shares: true, savedBy: true, contributionRequests: true } },
   ...(viewerUserId
-    ? { likes: { where: { userId: viewerUserId }, select: { userId: true } } }
+    ? {
+        likes: { where: { userId: viewerUserId }, select: { userId: true } },
+        reposts: { where: { userId: viewerUserId }, select: { userId: true } },
+        savedBy: { where: { userId: viewerUserId }, select: { userId: true } },
+      }
     : {}),
 });
 
 const toPublicResume = (resume, viewerUserId) => {
   const likedByMe = viewerUserId ? (resume.likes?.length || 0) > 0 : false;
-  const { likes, ...rest } = resume;
-  return { ...rest, likedByMe };
+  const repostedByMe = viewerUserId ? (resume.reposts?.length || 0) > 0 : false;
+  const savedByMe = viewerUserId ? (resume.savedBy?.length || 0) > 0 : false;
+  const { likes, reposts, savedBy, ...rest } = resume;
+  return { ...rest, likedByMe, repostedByMe, savedByMe };
 };
 
 const uploadResume = async (req, res) => {
@@ -198,11 +204,15 @@ const getResumesByFolder = async (req, res) => {
     const resumes = await prisma.resume.findMany({
       where: { folderId: folderIdNumber },
       include: {
-        user: { select: { id: true, name: true, area: true, photoUrl: true } },
+        user: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true } },
         tags: { select: { id: true, name: true } },
-        _count: { select: { likes: true, comments: true } },
+        _count: { select: { likes: true, comments: true, reposts: true, shares: true, savedBy: true, contributionRequests: true } },
         ...(viewerUserId
-          ? { likes: { where: { userId: viewerUserId }, select: { userId: true } } }
+          ? {
+              likes: { where: { userId: viewerUserId }, select: { userId: true } },
+              reposts: { where: { userId: viewerUserId }, select: { userId: true } },
+              savedBy: { where: { userId: viewerUserId }, select: { userId: true } },
+            }
           : {}),
       },
       orderBy: { createdAt: 'desc' }
@@ -301,7 +311,7 @@ const getResumeComments = async (req, res) => {
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { id: true, name: true, area: true, photoUrl: true } },
+        user: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true } },
       },
     });
     res.json(comments);
@@ -330,7 +340,7 @@ const addResumeComment = async (req, res) => {
         resumeId,
       },
       include: {
-        user: { select: { id: true, name: true, area: true, photoUrl: true } },
+        user: { select: { id: true, name: true, area: true, photoUrl: true, coverUrl: true } },
       },
     });
 

@@ -17,12 +17,25 @@ model User {
   password    String
   area        String    // Ex: Psicologia, Medicina, Ensino Médio
   photoUrl    String?
+  coverUrl    String?
   bio         String?
   resumes     Resume[]
   likes       ResumeLike[]
   comments    ResumeComment[]
   followers   UserFollow[] @relation("UserFollowers")
   following   UserFollow[] @relation("UserFollowing")
+  stories     Story[]
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+  friendshipsAsUser      Friendship[]    @relation("FriendshipsAsUser")
+  friendshipsAsFriend    Friendship[]    @relation("FriendshipsAsFriend")
+  notifications          Notification[]  @relation("UserNotifications")
+  actedNotifications     Notification[]  @relation("ActorNotifications")
+  contributionRequests   ContributionRequest[] @relation("ContributionAuthor")
+  receivedContributions  ContributionRequest[] @relation("ContributionOwner")
+  reposts     ResumeRepost[]
+  shares      ResumeShare[]
+  savedResumes SavedResume[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -73,6 +86,11 @@ model Resume {
   folder      Folder    @relation(fields: [folderId], references: [id])
   likes       ResumeLike[]
   comments    ResumeComment[]
+  reposts     ResumeRepost[]
+  shares      ResumeShare[]
+  savedBy     SavedResume[]
+  contributionRequests ContributionRequest[]
+  notifications Notification[]
   views       Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -107,4 +125,119 @@ model UserFollow {
 
   @@id([followerId, followingId])
   @@index([followingId])
+}
+
+model FriendRequest {
+  id          Int      @id @default(autoincrement())
+  requesterId Int
+  receiverId  Int
+  status      String   @default("PENDING")
+  message     String?
+  requester   User     @relation("SentFriendRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requesterId, receiverId])
+  @@index([receiverId, status])
+  @@index([requesterId, status])
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  user      User     @relation("FriendshipsAsUser", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendshipsAsFriend", fields: [friendId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, friendId])
+  @@index([friendId])
+}
+
+model Story {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  text      String?
+  mediaUrl  String?
+  mediaType String?
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model ResumeRepost {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  resumeId  Int
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, resumeId])
+  @@index([resumeId])
+}
+
+model ResumeShare {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  resumeId  Int
+  target    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([resumeId])
+  @@index([userId])
+}
+
+model SavedResume {
+  userId    Int
+  resumeId  Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, resumeId])
+  @@index([resumeId])
+}
+
+model ContributionRequest {
+  id        Int      @id @default(autoincrement())
+  resumeId  Int
+  authorId  Int
+  ownerId   Int
+  title     String?
+  message   String
+  status    String   @default("PENDING")
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  author    User     @relation("ContributionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  owner     User     @relation("ContributionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status])
+  @@index([authorId, status])
+  @@index([resumeId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  actorId   Int?
+  resumeId  Int?
+  type      String
+  message   String
+  readAt    DateTime?
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?    @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: SetNull)
+  resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+  @@index([actorId])
+  @@index([resumeId])
 }
