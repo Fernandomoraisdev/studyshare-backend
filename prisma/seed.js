@@ -17,6 +17,22 @@ async function main() {
       password: "123456"
     }
   });
+  
+  const user2 = await prisma.user.create({
+    data: {
+      name: "Bruno Costa",
+      email: "bruno@studyshare.com",
+      password: "123456"
+    }
+  });
+  
+  const user3 = await prisma.user.create({
+    data: {
+      name: "Carla Dias",
+      email: "carla@studyshare.com",
+      password: "123456"
+    }
+  });
 
   // Create categories
   const category1 = await prisma.category.upsert({
