@@ -9,6 +9,18 @@ async function main() {
   // Create example users
   const hashedPassword = await bcrypt.hash("12345678", 12);
 
+  const user1 = await prisma.user.upsert({
+    where: { email: "aluno1@estudoshare.com" },
+    update: {},
+    create: {
+      name: "Alice Silva",
+      email: "aluno1@estudoshare.com",
+      password: hashedPassword,
+      area: "Psicologia",
+      bio: "Estudante de psicologia apaixonada por neurociência e psicologia social.",
+    },
+  });
+  console.log(`Created user: ${user1.name}`);
 
 
   // Create categories
