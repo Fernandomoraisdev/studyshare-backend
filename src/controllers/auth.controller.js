@@ -87,12 +87,12 @@ const login = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(400).json({ message: 'Credenciais invalidas.' });
+      return res.status(400).json({ message: 'E-mail nao encontrado. Confira o e-mail ou crie uma conta.' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(400).json({ message: 'Credenciais invalidas.' });
+      return res.status(400).json({ message: 'Senha incorreta. Confira a senha ou troque sua senha no perfil quando estiver logado.' });
     }
 
     const token = signToken(user);
@@ -113,4 +113,33 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Informe a senha atual e a nova senha.' });
+  }
+
+  if (String(newPassword).length < 8) {
+    return res.status(400).json({ message: 'A nova senha deve ter pelo menos 8 caracteres.' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
+
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ message: 'Senha atual incorreta.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({ where: { id: req.user.id }, data: { password: hashedPassword } });
+
+    res.json({ message: 'Senha atualizada com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao trocar senha.', error: err.message });
+  }
+};
+
+module.exports = { register, login, changePassword };

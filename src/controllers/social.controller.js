@@ -155,12 +155,17 @@ const listFriends = async (req, res) => {
 
 const createStory = async (req, res) => {
   const text = typeof req.body.text === 'string' ? req.body.text.trim().slice(0, 800) : null;
-  const mediaUrl = typeof req.body.mediaUrl === 'string' ? req.body.mediaUrl.trim().slice(0, 1000) : null;
-  const mediaType = typeof req.body.mediaType === 'string' ? req.body.mediaType.trim().slice(0, 80) : null;
+  const uploadedMediaUrl = req.file ? `/uploads/stories/${req.file.filename}` : null;
+  const mediaUrl = uploadedMediaUrl || (typeof req.body.mediaUrl === 'string' ? req.body.mediaUrl.trim().slice(0, 1000) : null);
+  const mediaType = req.file?.mimetype || (typeof req.body.mediaType === 'string' ? req.body.mediaType.trim().slice(0, 80) : null);
 
   if (!text && !mediaUrl) return res.status(400).json({ message: 'Story precisa de texto ou midia.' });
+  if (mediaType && !mediaType.startsWith('image/') && !mediaType.startsWith('video/')) {
+    return res.status(400).json({ message: 'Status aceita apenas imagem ou video.' });
+  }
 
   try {
+    await prisma.story.deleteMany({ where: { expiresAt: { lte: new Date() } } });
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const story = await prisma.story.create({
       data: { userId: req.user.id, text, mediaUrl, mediaType, expiresAt },
@@ -174,6 +179,7 @@ const createStory = async (req, res) => {
 
 const listStories = async (req, res) => {
   try {
+    await prisma.story.deleteMany({ where: { expiresAt: { lte: new Date() } } });
     const stories = await prisma.story.findMany({
       where: { expiresAt: { gt: new Date() } },
       include: { user: { select: userCardSelect } },

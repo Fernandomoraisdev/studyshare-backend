@@ -60,6 +60,7 @@ app.use(express.json({ limit: '10mb' }));
 const uploadsRoot = path.join(__dirname, '../uploads');
 fs.mkdirSync(path.join(uploadsRoot, 'resumes'), { recursive: true });
 fs.mkdirSync(path.join(uploadsRoot, 'profiles'), { recursive: true });
+fs.mkdirSync(path.join(uploadsRoot, 'stories'), { recursive: true });
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
